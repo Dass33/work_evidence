@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Integration Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .loading { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>Frontend-Backend API Integration Test</h1>
+    
+    <div id="test-results">
+        <div class="test-result loading">Running tests...</div>
+    </div>
+
+    <script>
+        async function runTests() {
+            const resultsDiv = document.getElementById('test-results');
+            
+            function addResult(test, success, message) {
+                const div = document.createElement('div');
+                div.className = `test-result ${success ? 'success' : 'error'}`;
+                div.innerHTML = `<strong>${test}:</strong> ${message}`;
+                resultsDiv.appendChild(div);
+            }
+            
+            // Clear loading message
+            resultsDiv.innerHTML = '';
+            
+            // Test 1: Register a user
+            try {
+                const registerResponse = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: `frontendtest_${Date.now()}`,
+                        password: 'test123',
+                        role: 'worker'
+                    })
+                });
+                const registerData = await registerResponse.json();
+                addResult('User Registration', registerResponse.ok, 
+                    registerResponse.ok ? `Success: ${registerData.message}` : `Failed: ${registerData.error}`);
+                
+                if (registerResponse.ok) {
+                    // Test 2: Login with the new user
+                    const loginResponse = await fetch('/api/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            username: `frontendtest_${Math.floor(Date.now()/1000)*1000}`,
+                            password: 'test123'
+                        })
+                    });
+                    
+                    if (loginResponse.ok) {
+                        const loginData = await loginResponse.json();
+                        addResult('User Login', true, `Success: Token received`);
+                        
+                        const token = loginData.token;
+                        
+                        // Test 3: Create work entry
+                        const formData = new FormData();
+                        formData.append('work_date', '2024-01-20');
+                        formData.append('start_time', '09:00');
+                        formData.append('end_time', '18:00');
+                        formData.append('description', 'Frontend integration test work entry');
+                        
+                        const workEntryResponse = await fetch('/api/work-entries', {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${token}` },
+                            body: formData
+                        });
+                        const workEntryData = await workEntryResponse.json();
+                        addResult('Work Entry Creation', workEntryResponse.ok,
+                            workEntryResponse.ok ? `Success: ${workEntryData.message}` : `Failed: ${workEntryData.error}`);
+                        
+                        // Test 4: Fetch work entries
+                        const entriesResponse = await fetch('/api/work-entries', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        const entriesData = await entriesResponse.json();
+                        addResult('Fetch Work Entries', entriesResponse.ok,
+                            entriesResponse.ok ? `Success: Found ${entriesData.length} entries` : `Failed: ${entriesData.error}`);
+                        
+                    } else {
+                        const loginData = await loginResponse.json();
+                        addResult('User Login', false, `Failed: ${loginData.error || 'Login failed'}`);
+                    }
+                }
+                
+            } catch (error) {
+                addResult('Integration Test', false, `Network Error: ${error.message}`);
+            }
+            
+            // Test 5: Check file upload endpoint
+            try {
+                const uploadResponse = await fetch('/api/uploads/nonexistent.png');
+                addResult('File Upload Endpoint', uploadResponse.status === 404, 
+                    uploadResponse.status === 404 ? 'Success: 404 for missing file' : 'Failed: Unexpected response');
+            } catch (error) {
+                addResult('File Upload Endpoint', false, `Error: ${error.message}`);
+            }
+        }
+        
+        // Run tests when page loads
+        runTests();
+    </script>
+</body>
+</html>
