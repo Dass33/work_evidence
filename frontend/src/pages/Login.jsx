@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { API_BASE_URL } from '../config'
 
 function Login({ setUser }) {
   const { t, i18n } = useTranslation()
@@ -23,7 +24,7 @@ function Login({ setUser }) {
     setError('')
 
     try {
-      const response = await fetch('/api/login', {
+      const response = await fetch(`${API_BASE_URL}/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

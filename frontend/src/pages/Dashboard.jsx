@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import { API_BASE_URL } from '../config'
 
 function Dashboard({ user }) {
   const { t } = useTranslation()
@@ -15,7 +16,7 @@ function Dashboard({ user }) {
   const fetchWorkEntries = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/work-entries', {
+      const response = await fetch(`${API_BASE_URL}/api/work-entries`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

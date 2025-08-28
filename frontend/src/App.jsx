@@ -31,7 +31,7 @@ function App() {
   }
 
   return (
-    <Router>
+    <Router basename="/work_evidence">
       <div className="min-h-screen bg-gray-100">
         {user && <Header user={user} onLogout={logout} />}
         

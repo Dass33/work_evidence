@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import UserManagement from '../components/UserManagement'
+import { API_BASE_URL } from '../config'
 
 function AdminView() {
   const { t } = useTranslation()
@@ -21,13 +22,13 @@ function AdminView() {
       const token = localStorage.getItem('token')
       
       const [entriesResponse, usersResponse] = await Promise.all([
-        fetch('/api/work-entries', {
+        fetch(`${API_BASE_URL}/api/work-entries`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         }),
-        fetch('/api/users', {
+        fetch(`${API_BASE_URL}/api/users`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
+import { API_BASE_URL } from '../config'
 
 function WorkForm({ user }) {
   const { t } = useTranslation()
@@ -97,7 +98,7 @@ function WorkForm({ user }) {
         photo_data: compressedPhoto
       }
 
-      const response = await fetch('/api/work-entries', {
+      const response = await fetch(`${API_BASE_URL}/api/work-entries`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

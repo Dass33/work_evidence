@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { API_BASE_URL } from '../config'
 
 function UserManagement({ users, onUserCreated, onUserDeleted }) {
   const { t } = useTranslation()
@@ -24,7 +25,7 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch('/api/admin/users', {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -61,7 +62,7 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
 
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
