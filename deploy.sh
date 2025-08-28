@@ -18,9 +18,9 @@ gcloud run deploy work-evidence-backend \
   --platform managed \
   --region europe-west1 \
   --allow-unauthenticated \
-  --memory 512Mi \
-  --cpu 1 \
-  --max-instances 10
+  --memory 256Mi \
+  --cpu 0.5 \
+  --max-instances 3
 
 echo "✅ Deployment complete!"
 echo "Frontend: Check your GitHub Pages URL"
