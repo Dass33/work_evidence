@@ -2,24 +2,24 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
 const resources = {
-  en: {
+  uk: {
     translation: {
-      login: 'Login',
-      username: 'Username',
-      password: 'Password',
-      dashboard: 'Dashboard',
-      workForm: 'Work Form',
-      admin: 'Admin',
-      logout: 'Logout',
-      workDate: 'Work Date',
-      startTime: 'Start Time',
-      endTime: 'End Time',
-      description: 'Description',
-      photo: 'Photo',
-      submit: 'Submit',
-      workEntries: 'Work Entries',
-      addWorkEntry: 'Add Work Entry',
-      viewAll: 'View All Work'
+      login: 'Вхід',
+      username: 'Ім\'я користувача',
+      password: 'Пароль',
+      dashboard: 'Панель керування',
+      workForm: 'Форма роботи',
+      admin: 'Адміністратор',
+      logout: 'Вихід',
+      workDate: 'Дата роботи',
+      startTime: 'Час початку',
+      endTime: 'Час завершення',
+      description: 'Опис',
+      photo: 'Фото',
+      submit: 'Надіслати',
+      workEntries: 'Записи роботи',
+      addWorkEntry: 'Додати запис роботи',
+      viewAll: 'Переглянути всю роботу'
     }
   },
   cs: {
@@ -68,8 +68,8 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: 'en',
-    fallbackLng: 'en',
+    lng: 'cs',
+    fallbackLng: 'cs',
     interpolation: {
       escapeValue: false
     }

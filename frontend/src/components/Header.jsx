@@ -31,18 +31,18 @@ function Header({ user, onLogout }) {
             {/* Language Switcher */}
             <div className="flex space-x-1">
               <button
-                onClick={() => changeLanguage('en')}
-                className={`px-3 py-2 text-sm font-semibold rounded transition-colors ${i18n.language === 'en' ? 'bg-blue-800' : 'hover:bg-blue-700'
-                  }`}
-              >
-                EN
-              </button>
-              <button
                 onClick={() => changeLanguage('cs')}
                 className={`px-3 py-2 text-sm font-semibold rounded transition-colors ${i18n.language === 'cs' ? 'bg-blue-800' : 'hover:bg-blue-700'
                   }`}
               >
                 CS
+              </button>
+              <button
+                onClick={() => changeLanguage('uk')}
+                className={`px-3 py-2 text-sm font-semibold rounded transition-colors ${i18n.language === 'uk' ? 'bg-blue-800' : 'hover:bg-blue-700'
+                  }`}
+              >
+                UK
               </button>
               <button
                 onClick={() => changeLanguage('uz')}
