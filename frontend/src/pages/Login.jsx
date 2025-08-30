@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { API_BASE_URL } from '../config'
 
 function Login({ setUser }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -49,34 +49,9 @@ function Login({ setUser }) {
     }
   }
 
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng)
-  }
 
   return (
     <div className="max-w-md mx-auto mt-4 sm:mt-8 p-4 sm:p-6 bg-white rounded-lg shadow-md">
-      <div className="flex justify-center sm:justify-end mb-4">
-        <div className="flex space-x-2">
-          <button
-            onClick={() => changeLanguage('cs')}
-            className="px-2 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300 transition-colors"
-          >
-            CS
-          </button>
-          <button
-            onClick={() => changeLanguage('uk')}
-            className="px-2 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300 transition-colors"
-          >
-            UK
-          </button>
-          <button
-            onClick={() => changeLanguage('uz')}
-            className="px-2 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300 transition-colors"
-          >
-            UZ
-          </button>
-        </div>
-      </div>
 
       <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">{t('login')}</h2>
 

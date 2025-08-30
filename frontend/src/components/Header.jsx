@@ -2,11 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 function Header({ user, onLogout }) {
-  const { t, i18n } = useTranslation()
-
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng)
-  }
+  const { t } = useTranslation()
 
   return (
     <header className="bg-blue-600 text-white shadow-lg">
@@ -28,30 +24,6 @@ function Header({ user, onLogout }) {
               </button>
             </div>
 
-            {/* Language Switcher */}
-            <div className="flex space-x-1">
-              <button
-                onClick={() => changeLanguage('cs')}
-                className={`px-3 py-2 text-sm font-semibold rounded transition-colors ${i18n.language === 'cs' ? 'bg-blue-800' : 'hover:bg-blue-700'
-                  }`}
-              >
-                CS
-              </button>
-              <button
-                onClick={() => changeLanguage('uk')}
-                className={`px-3 py-2 text-sm font-semibold rounded transition-colors ${i18n.language === 'uk' ? 'bg-blue-800' : 'hover:bg-blue-700'
-                  }`}
-              >
-                UK
-              </button>
-              <button
-                onClick={() => changeLanguage('uz')}
-                className={`px-3 py-2 text-sm font-semibold rounded transition-colors ${i18n.language === 'uz' ? 'bg-blue-800' : 'hover:bg-blue-700'
-                  }`}
-              >
-                UZ
-              </button>
-            </div>
           </div>
         </div>
       </div>
