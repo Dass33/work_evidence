@@ -39,6 +39,13 @@ async function initDatabase() {
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
   )`);
 
+  await db.execute(`CREATE TABLE IF NOT EXISTS projects (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL,
+    is_hidden INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
   try {
     const columns = await db.execute('PRAGMA table_info(work_entries)');
     const hasPhotoData = columns.rows.some(col => col.name === 'photo_data');
@@ -284,6 +291,120 @@ app.delete('/api/admin/users/:userId', authenticateToken, async (req, res) => {
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
     console.error('User deletion error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/projects', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    
+    const result = await db.execute(`
+      SELECT id, name, is_hidden, created_at FROM projects 
+      ORDER BY name ASC
+    `);
+    
+    res.json(result.rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch projects' });
+  }
+});
+
+app.post('/api/admin/projects', authenticateToken, async (req, res) => {
+  const { name, is_hidden = 0 } = req.body;
+  
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Project name is required' });
+    }
+    
+    const result = await db.execute({
+      sql: 'INSERT INTO projects (name, is_hidden) VALUES (?, ?)',
+      args: [name, is_hidden ? 1 : 0]
+    });
+    
+    res.json({ 
+      message: 'Project created successfully', 
+      projectId: Number(result.lastInsertRowid),
+      project: { id: Number(result.lastInsertRowid), name, is_hidden: is_hidden ? 1 : 0 }
+    });
+  } catch (error) {
+    console.error('Project creation error:', error);
+    if (error.message.includes('UNIQUE constraint failed')) {
+      return res.status(400).json({ error: 'Project name already exists' });
+    }
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.put('/api/admin/projects/:projectId', authenticateToken, async (req, res) => {
+  const { projectId } = req.params;
+  const { name, is_hidden } = req.body;
+  
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Project name is required' });
+    }
+    
+    const projectCheck = await db.execute({
+      sql: 'SELECT id FROM projects WHERE id = ?',
+      args: [projectId]
+    });
+    
+    if (projectCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    await db.execute({
+      sql: 'UPDATE projects SET name = ?, is_hidden = ? WHERE id = ?',
+      args: [name, is_hidden ? 1 : 0, projectId]
+    });
+    
+    res.json({ message: 'Project updated successfully' });
+  } catch (error) {
+    console.error('Project update error:', error);
+    if (error.message.includes('UNIQUE constraint failed')) {
+      return res.status(400).json({ error: 'Project name already exists' });
+    }
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.delete('/api/admin/projects/:projectId', authenticateToken, async (req, res) => {
+  const { projectId } = req.params;
+  
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+    
+    const projectCheck = await db.execute({
+      sql: 'SELECT id, name FROM projects WHERE id = ?',
+      args: [projectId]
+    });
+    
+    if (projectCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    
+    await db.execute({
+      sql: 'DELETE FROM projects WHERE id = ?',
+      args: [projectId]
+    });
+    
+    res.json({ message: 'Project deleted successfully' });
+  } catch (error) {
+    console.error('Project deletion error:', error);
     res.status(500).json({ error: 'Server error' });
   }
 });

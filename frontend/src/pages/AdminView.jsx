@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import UserManagement from '../components/UserManagement'
+import ProjectManagement from '../components/ProjectManagement'
 import { API_BASE_URL } from '../config'
 
 function AdminView() {
   const { t } = useTranslation()
   const [workEntries, setWorkEntries] = useState([])
   const [users, setUsers] = useState([])
+  const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedUser, setSelectedUser] = useState('all')
@@ -21,7 +23,7 @@ function AdminView() {
     try {
       const token = localStorage.getItem('token')
       
-      const [entriesResponse, usersResponse] = await Promise.all([
+      const [entriesResponse, usersResponse, projectsResponse] = await Promise.all([
         fetch(`${API_BASE_URL}/api/work-entries`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -33,14 +35,22 @@ function AdminView() {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
+        }),
+        fetch(`${API_BASE_URL}/api/projects`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
         })
       ])
 
-      if (entriesResponse.ok && usersResponse.ok) {
+      if (entriesResponse.ok && usersResponse.ok && projectsResponse.ok) {
         const entriesData = await entriesResponse.json()
         const usersData = await usersResponse.json()
+        const projectsData = await projectsResponse.json()
         setWorkEntries(entriesData)
         setUsers(usersData)
+        setProjects(projectsData)
       } else {
         setError('Failed to fetch data')
       }
@@ -73,6 +83,22 @@ function AdminView() {
     if (selectedUser === userId.toString()) {
       setSelectedUser('all')
     }
+  }
+
+  const handleProjectCreated = (newProject) => {
+    setProjects(prevProjects => [...prevProjects, newProject])
+  }
+
+  const handleProjectUpdated = (updatedProject) => {
+    setProjects(prevProjects => 
+      prevProjects.map(project => 
+        project.id === updatedProject.id ? updatedProject : project
+      )
+    )
+  }
+
+  const handleProjectDeleted = (projectId) => {
+    setProjects(prevProjects => prevProjects.filter(project => project.id !== projectId))
   }
 
   if (loading) {
@@ -112,6 +138,16 @@ function AdminView() {
               }`}
             >
               User Management
+            </button>
+            <button
+              onClick={() => setActiveTab('projects')}
+              className={`py-4 px-6 border-b-2 font-medium text-sm ${
+                activeTab === 'projects'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              Project Management
             </button>
           </nav>
         </div>
@@ -244,6 +280,15 @@ function AdminView() {
           users={users} 
           onUserCreated={handleUserCreated}
           onUserDeleted={handleUserDeleted}
+        />
+      )}
+
+      {activeTab === 'projects' && (
+        <ProjectManagement 
+          projects={projects}
+          onProjectCreated={handleProjectCreated}
+          onProjectUpdated={handleProjectUpdated}
+          onProjectDeleted={handleProjectDeleted}
         />
       )}
     </div>
