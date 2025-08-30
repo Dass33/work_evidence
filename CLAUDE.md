@@ -8,6 +8,7 @@ Simple web application for tracking daily work evidence with photo uploads and m
 - **Database:** Turso (LibSQL)
 - **Auth:** JWT tokens
 - **Photo Storage:** Google Cloud Storage (multiple photos per entry)
+- **Google Sheets Integration:** Automatic sync of work entries to Google Sheets
 - **i18n:** react-i18next (Czech, Uzbek, English)
 
 ## Development Commands
@@ -39,6 +40,7 @@ npm run dev
 - Admin dashboard (all entries, calendar view, user management, project management)
 - Multi-language support (Czech, Uzbek, English)
 - Multiple photo upload with client-side compression (stored in Google Cloud Storage)
+- Automatic Google Sheets integration (new work entries are automatically added to specified sheet)
 
 ## File Structure
 ```
@@ -74,12 +76,16 @@ JWT_SECRET=your-jwt-secret
 GOOGLE_CLOUD_PROJECT_ID=your-project-id
 GOOGLE_CLOUD_STORAGE_BUCKET=work-evidence-photos
 GOOGLE_CLOUD_KEY_FILE=./service-account-key.json
+
+# Google Sheets Integration
+GOOGLE_SHEETS_ID=your-google-sheets-spreadsheet-id
 ```
 
 ## Setup Requirements
 1. **Database**: Turso account and database setup
 2. **Google Cloud Storage**: See `GOOGLE_CLOUD_SETUP.md` for detailed setup instructions
-3. **Service Account**: Google Cloud service account key file
+3. **Service Account**: Google Cloud service account key file (used for both Storage and Sheets)
+4. **Google Sheets**: Create a Google Sheet and share it with your service account email, then add the sheet ID to `GOOGLE_SHEETS_ID`
 
 ## Commands to remember
 - `npm run dev` - Start development servers

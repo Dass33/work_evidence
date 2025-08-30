@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { createClient } = require('@libsql/client');
 const { Storage } = require('@google-cloud/storage');
+const { google } = require('googleapis');
 const multer = require('multer');
 require('dotenv').config();
 
@@ -20,6 +21,13 @@ const storage = new Storage({
   keyFilename: process.env.GOOGLE_CLOUD_KEY_FILE,
 });
 const bucket = storage.bucket(process.env.GOOGLE_CLOUD_STORAGE_BUCKET);
+
+// Google Sheets setup
+const auth = new google.auth.GoogleAuth({
+  keyFile: process.env.GOOGLE_CLOUD_KEY_FILE,
+  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+});
+const sheets = google.sheets({ version: 'v4', auth });
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -166,6 +174,34 @@ async function getSignedUrl(photoUrl) {
   }
 }
 
+async function appendToGoogleSheets(workDate, username, projectName, startTime, endTime, description) {
+  try {
+    const spreadsheetId = process.env.GOOGLE_SHEETS_ID;
+    if (!spreadsheetId) {
+      console.log('Google Sheets ID not configured, skipping sheets update');
+      return;
+    }
+
+    const values = [
+      [workDate, username, projectName || '', startTime, endTime, description || '']
+    ];
+
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: 'Sheet1!A:F',
+      valueInputOption: 'USER_ENTERED',
+      resource: {
+        values,
+      },
+    });
+
+    console.log('Successfully added row to Google Sheets');
+  } catch (error) {
+    console.error('Error appending to Google Sheets:', error.message);
+  }
+}
+
+
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -265,6 +301,37 @@ app.post('/api/work-entries', authenticateToken, async (req, res) => {
           }
         }
       }
+    }
+    
+    // Add entry to Google Sheets
+    try {
+      // Get username and project name for the sheets entry
+      const userResult = await db.execute({
+        sql: 'SELECT username FROM users WHERE id = ?',
+        args: [req.user.userId]
+      });
+      
+      let projectName = null;
+      if (project_id) {
+        const projectResult = await db.execute({
+          sql: 'SELECT name FROM projects WHERE id = ?',
+          args: [project_id]
+        });
+        projectName = projectResult.rows[0]?.name || null;
+      }
+      
+      const username = userResult.rows[0]?.username || 'Unknown';
+      
+      await appendToGoogleSheets(
+        work_date, 
+        username, 
+        projectName, 
+        start_time, 
+        end_time, 
+        description
+      );
+    } catch (sheetsError) {
+      console.error('Google Sheets update failed (continuing with work entry creation):', sheetsError);
     }
     
     res.json({ message: 'Work entry saved successfully', entryId });
@@ -529,7 +596,6 @@ app.delete('/api/admin/projects/:projectId', authenticateToken, async (req, res)
     res.status(500).json({ error: 'Server error' });
   }
 });
-
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
