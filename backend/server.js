@@ -49,10 +49,16 @@ async function initDatabase() {
   try {
     const columns = await db.execute('PRAGMA table_info(work_entries)');
     const hasPhotoData = columns.rows.some(col => col.name === 'photo_data');
+    const hasProjectId = columns.rows.some(col => col.name === 'project_id');
     
     if (!hasPhotoData) {
       console.log('Adding photo_data column to work_entries table');
       await db.execute('ALTER TABLE work_entries ADD COLUMN photo_data BLOB');
+    }
+
+    if (!hasProjectId) {
+      console.log('Adding project_id column to work_entries table');
+      await db.execute('ALTER TABLE work_entries ADD COLUMN project_id INTEGER REFERENCES projects(id)');
     }
 
     const foreignKeys = await db.execute('PRAGMA foreign_key_list(work_entries)');
@@ -163,7 +169,7 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.post('/api/work-entries', authenticateToken, async (req, res) => {
-  const { work_date, start_time, end_time, description, photo_data } = req.body;
+  const { work_date, start_time, end_time, description, photo_data, project_id } = req.body;
   
   try {
     let photoBlob = null;
@@ -173,8 +179,8 @@ app.post('/api/work-entries', authenticateToken, async (req, res) => {
     }
     
     const result = await db.execute({
-      sql: 'INSERT INTO work_entries (user_id, work_date, start_time, end_time, description, photo_data) VALUES (?, ?, ?, ?, ?, ?)',
-      args: [req.user.userId, work_date, start_time, end_time, description, photoBlob]
+      sql: 'INSERT INTO work_entries (user_id, work_date, start_time, end_time, description, photo_data, project_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      args: [req.user.userId, work_date, start_time, end_time, description, photoBlob, project_id || null]
     });
     
     res.json({ message: 'Work entry saved successfully', entryId: Number(result.lastInsertRowid) });
@@ -190,13 +196,19 @@ app.get('/api/work-entries', authenticateToken, async (req, res) => {
     
     if (req.user.role === 'admin') {
       result = await db.execute(`
-        SELECT we.*, u.username FROM work_entries we 
+        SELECT we.*, u.username, p.name as project_name 
+        FROM work_entries we 
         JOIN users u ON we.user_id = u.id 
+        LEFT JOIN projects p ON we.project_id = p.id
         ORDER BY we.work_date DESC
       `);
     } else {
       result = await db.execute({
-        sql: 'SELECT * FROM work_entries WHERE user_id = ? ORDER BY work_date DESC',
+        sql: `SELECT we.*, p.name as project_name 
+              FROM work_entries we 
+              LEFT JOIN projects p ON we.project_id = p.id
+              WHERE we.user_id = ? 
+              ORDER BY we.work_date DESC`,
         args: [req.user.userId]
       });
     }
@@ -297,14 +309,20 @@ app.delete('/api/admin/users/:userId', authenticateToken, async (req, res) => {
 
 app.get('/api/projects', authenticateToken, async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' });
-    }
+    let result;
     
-    const result = await db.execute(`
-      SELECT id, name, is_hidden, created_at FROM projects 
-      ORDER BY name ASC
-    `);
+    if (req.user.role === 'admin') {
+      result = await db.execute(`
+        SELECT id, name, is_hidden, created_at FROM projects 
+        ORDER BY name ASC
+      `);
+    } else {
+      result = await db.execute(`
+        SELECT id, name FROM projects 
+        WHERE is_hidden = 0
+        ORDER BY name ASC
+      `);
+    }
     
     res.json(result.rows);
   } catch (error) {

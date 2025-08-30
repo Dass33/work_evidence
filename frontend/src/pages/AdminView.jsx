@@ -224,6 +224,11 @@ function AdminView() {
                         <span className="text-sm text-gray-600">
                           {entry.start_time} - {entry.end_time}
                         </span>
+                        {entry.project_name && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            {entry.project_name}
+                          </span>
+                        )}
                       </div>
                       <p className="text-gray-700 text-sm sm:text-base leading-relaxed">{entry.description}</p>
                       {entry.photo_data && (

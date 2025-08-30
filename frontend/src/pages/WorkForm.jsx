@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { API_BASE_URL } from '../config'
@@ -11,11 +11,36 @@ function WorkForm({ user }) {
     start_time: '',
     end_time: '',
     description: '',
-    photo: null
+    photo: null,
+    project_id: ''
   })
+  const [projects, setProjects] = useState([])
   const [compressedPhoto, setCompressedPhoto] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+
+  const fetchProjects = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${API_BASE_URL}/api/projects`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setProjects(data)
+      }
+    } catch (error) {
+      console.error('Error fetching projects:', error)
+    }
+  }
 
   const compressImage = (file) => {
     return new Promise((resolve) => {
@@ -95,7 +120,8 @@ function WorkForm({ user }) {
         start_time: formData.start_time,
         end_time: formData.end_time,
         description: formData.description,
-        photo_data: compressedPhoto
+        photo_data: compressedPhoto,
+        project_id: formData.project_id || null
       }
 
       const response = await fetch(`${API_BASE_URL}/api/work-entries`, {
@@ -195,6 +221,28 @@ function WorkForm({ user }) {
               placeholder="Describe your work activities..."
             />
           </div>
+
+          {projects.length > 0 && (
+            <div>
+              <label htmlFor="project_id" className="block text-sm font-medium text-gray-700 mb-2">
+                Project (Optional)
+              </label>
+              <select
+                id="project_id"
+                name="project_id"
+                value={formData.project_id}
+                onChange={handleChange}
+                className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+              >
+                <option value="">Select a project (optional)</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label htmlFor="photo" className="block text-sm font-medium text-gray-700 mb-2">
