@@ -12,7 +12,8 @@ function AdminView() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedUser, setSelectedUser] = useState('all')
-  const [selectedDate, setSelectedDate] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
   const [activeTab, setActiveTab] = useState('entries')
 
   useEffect(() => {
@@ -64,7 +65,16 @@ function AdminView() {
 
   const filteredEntries = workEntries.filter(entry => {
     const userMatch = selectedUser === 'all' || entry.user_id.toString() === selectedUser
-    const dateMatch = !selectedDate || entry.work_date === selectedDate
+    
+    let dateMatch = true
+    if (startDate && endDate) {
+      dateMatch = entry.work_date >= startDate && entry.work_date <= endDate
+    } else if (startDate) {
+      dateMatch = entry.work_date >= startDate
+    } else if (endDate) {
+      dateMatch = entry.work_date <= endDate
+    }
+    
     return userMatch && dateMatch
   })
 
@@ -158,7 +168,7 @@ function AdminView() {
         <>
           {/* Filters */}
           <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label htmlFor="userFilter" className="block text-sm font-medium text-gray-700 mb-2">
                   Filter by User:
@@ -179,14 +189,27 @@ function AdminView() {
               </div>
 
               <div>
-                <label htmlFor="dateFilter" className="block text-sm font-medium text-gray-700 mb-2">
-                  Filter by Date:
+                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
+                  Start Date:
                 </label>
                 <input
                   type="date"
-                  id="dateFilter"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
+                  id="startDate"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
+                  End Date:
+                </label>
+                <input
+                  type="date"
+                  id="endDate"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
                   className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                 />
               </div>
