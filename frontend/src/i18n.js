@@ -90,7 +90,11 @@ const resources = {
       failedFetchData: 'Nepodařilo se načíst data',
       noEntriesForFilters: 'Pro vybrané filtry nebyly nalezeny žádné pracovní záznamy.',
       describePlaceholder: 'Popište své pracovní aktivity...',
-      preview: 'Náhled'
+      preview: 'Náhled',
+      photos: 'Fotografie',
+      multiple: 'vícenásobný',
+      photoSelected: 'fotografie vybrána',
+      photosSelected: 'fotografií vybráno'
     }
   },
   uz: {

@@ -11,11 +11,11 @@ function WorkForm({ user }) {
     start_time: '',
     end_time: '',
     description: '',
-    photo: null,
+    photos: [],
     project_id: ''
   })
   const [projects, setProjects] = useState([])
-  const [compressedPhoto, setCompressedPhoto] = useState(null)
+  const [compressedPhotos, setCompressedPhotos] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -84,28 +84,44 @@ function WorkForm({ user }) {
   }
 
   const handleChange = async (e) => {
-    if (e.target.name === 'photo') {
-      const file = e.target.files[0]
-      if (file) {
+    if (e.target.name === 'photos') {
+      const files = Array.from(e.target.files)
+      if (files.length > 0) {
+        const newPhotos = [...formData.photos, ...files]
         setFormData({
           ...formData,
-          photo: file
+          photos: newPhotos
         })
-        const compressed = await compressImage(file)
-        setCompressedPhoto(compressed)
-      } else {
-        setFormData({
-          ...formData,
-          photo: null
-        })
-        setCompressedPhoto(null)
+        
+        // Compress all newly selected photos
+        const newCompressed = await Promise.all(
+          files.map(async (file) => ({
+            name: file.name,
+            data: await compressImage(file),
+            preview: await compressImage(file)
+          }))
+        )
+        setCompressedPhotos([...compressedPhotos, ...newCompressed])
       }
+      // Clear the file input so the same files can be selected again if needed
+      e.target.value = ''
     } else {
       setFormData({
         ...formData,
         [e.target.name]: e.target.value
       })
     }
+  }
+
+  const removePhoto = (index) => {
+    const newPhotos = formData.photos.filter((_, i) => i !== index)
+    const newCompressed = compressedPhotos.filter((_, i) => i !== index)
+    
+    setFormData({
+      ...formData,
+      photos: newPhotos
+    })
+    setCompressedPhotos(newCompressed)
   }
 
   const handleSubmit = async (e) => {
@@ -120,7 +136,7 @@ function WorkForm({ user }) {
         start_time: formData.start_time,
         end_time: formData.end_time,
         description: formData.description,
-        photo_data: compressedPhoto,
+        photos: compressedPhotos,
         project_id: formData.project_id || null
       }
 
@@ -245,24 +261,45 @@ function WorkForm({ user }) {
           )}
 
           <div>
-            <label htmlFor="photo" className="block text-sm font-medium text-gray-700 mb-2">
-              {t('photo')}
+            <label htmlFor="photos" className="block text-sm font-medium text-gray-700 mb-2">
+              {t('photos')} ({t('multiple')})
             </label>
             <input
               type="file"
-              id="photo"
-              name="photo"
+              id="photos"
+              name="photos"
               onChange={handleChange}
               accept="image/*"
+              multiple
               className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
             />
-            {compressedPhoto && (
-              <div className="mt-3">
-                <img 
-                  src={compressedPhoto} 
-                  alt={t('preview')} 
-                  className="w-40 h-40 sm:w-32 sm:h-32 object-cover rounded-lg border mx-auto sm:mx-0"
-                />
+            
+            {compressedPhotos.length > 0 && (
+              <div className="mt-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {compressedPhotos.map((photo, index) => (
+                    <div key={index} className="relative">
+                      <img 
+                        src={photo.preview} 
+                        alt={`${t('preview')} ${index + 1}`} 
+                        className="w-full h-24 sm:h-20 object-cover rounded-lg border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(index)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                      <div className="mt-1 text-xs text-gray-500 truncate">
+                        {photo.name}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2 text-sm text-gray-600">
+                  {compressedPhotos.length} {compressedPhotos.length === 1 ? t('photoSelected') : t('photosSelected')}
+                </div>
               </div>
             )}
           </div>

@@ -86,13 +86,27 @@ function Dashboard({ user }) {
                     )}
                   </div>
                   <p className="text-gray-700 text-sm sm:text-base leading-relaxed">{entry.description}</p>
-                  {entry.photo_data && (
+                  
+                  {/* Display multiple photos */}
+                  {entry.photos && entry.photos.length > 0 && (
                     <div className="mt-3">
-                      <img
-                        src={entry.photo_data}
-                        alt={t('workEvidence')}
-                        className="w-40 h-40 sm:w-32 sm:h-32 object-cover rounded-lg border mx-auto sm:mx-0"
-                      />
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {entry.photos.map((photo, photoIndex) => (
+                          <div key={photoIndex} className="relative">
+                            <img
+                              src={photo.url}
+                              alt={`${t('workEvidence')} ${photoIndex + 1}`}
+                              className="w-full h-24 sm:h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80"
+                              onClick={() => window.open(photo.url, '_blank')}
+                            />
+                            {photo.filename && (
+                              <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg truncate">
+                                {photo.filename}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -4,6 +4,8 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { createClient } = require('@libsql/client');
+const { Storage } = require('@google-cloud/storage');
+const multer = require('multer');
 require('dotenv').config();
 
 const app = express();
@@ -11,7 +13,20 @@ const PORT = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+
+const storage = new Storage({
+  projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
+  keyFilename: process.env.GOOGLE_CLOUD_KEY_FILE,
+});
+const bucket = storage.bucket(process.env.GOOGLE_CLOUD_STORAGE_BUCKET);
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+});
 
 const db = createClient({
   url: process.env.TURSO_DATABASE_URL,
@@ -44,6 +59,17 @@ async function initDatabase() {
     name TEXT UNIQUE NOT NULL,
     is_hidden INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  await db.execute(`CREATE TABLE IF NOT EXISTS work_entry_photos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    work_entry_id INTEGER NOT NULL,
+    photo_url TEXT NOT NULL,
+    original_filename TEXT,
+    file_size INTEGER,
+    upload_order INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (work_entry_id) REFERENCES work_entries (id) ON DELETE CASCADE
   )`);
 
   try {
@@ -102,6 +128,43 @@ async function initDatabase() {
 }
 
 initDatabase().catch(console.error);
+
+async function uploadToGCS(buffer, filename) {
+  try {
+    const file = bucket.file(`work-photos/${Date.now()}-${filename}`);
+    const stream = file.createWriteStream({
+      metadata: {
+        contentType: 'image/jpeg',
+      },
+    });
+
+    return new Promise((resolve, reject) => {
+      stream.on('error', reject);
+      stream.on('finish', () => {
+        resolve(`gs://${process.env.GOOGLE_CLOUD_STORAGE_BUCKET}/${file.name}`);
+      });
+      stream.end(buffer);
+    });
+  } catch (error) {
+    console.error('Error uploading to GCS:', error);
+    throw error;
+  }
+}
+
+async function getSignedUrl(photoUrl) {
+  try {
+    const fileName = photoUrl.replace(`gs://${process.env.GOOGLE_CLOUD_STORAGE_BUCKET}/`, '');
+    const file = bucket.file(fileName);
+    const [url] = await file.getSignedUrl({
+      action: 'read',
+      expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
+    });
+    return url;
+  } catch (error) {
+    console.error('Error generating signed URL:', error);
+    return null;
+  }
+}
 
 
 const authenticateToken = (req, res, next) => {
@@ -169,21 +232,42 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.post('/api/work-entries', authenticateToken, async (req, res) => {
-  const { work_date, start_time, end_time, description, photo_data, project_id } = req.body;
+  const { work_date, start_time, end_time, description, photos, project_id } = req.body;
   
   try {
-    let photoBlob = null;
-    if (photo_data) {
-      const base64Data = photo_data.split(',')[1];
-      photoBlob = Buffer.from(base64Data, 'base64');
-    }
-    
+    // Create work entry first
     const result = await db.execute({
-      sql: 'INSERT INTO work_entries (user_id, work_date, start_time, end_time, description, photo_data, project_id) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      args: [req.user.userId, work_date, start_time, end_time, description, photoBlob, project_id || null]
+      sql: 'INSERT INTO work_entries (user_id, work_date, start_time, end_time, description, project_id) VALUES (?, ?, ?, ?, ?, ?)',
+      args: [req.user.userId, work_date, start_time, end_time, description, project_id || null]
     });
     
-    res.json({ message: 'Work entry saved successfully', entryId: Number(result.lastInsertRowid) });
+    const entryId = Number(result.lastInsertRowid);
+    
+    // Upload photos to GCS and save references
+    if (photos && photos.length > 0) {
+      for (let i = 0; i < photos.length; i++) {
+        const photo = photos[i];
+        if (photo.data) {
+          try {
+            const base64Data = photo.data.split(',')[1];
+            const buffer = Buffer.from(base64Data, 'base64');
+            
+            const filename = photo.name || `photo-${i + 1}.jpg`;
+            const gcsUrl = await uploadToGCS(buffer, filename);
+            
+            await db.execute({
+              sql: 'INSERT INTO work_entry_photos (work_entry_id, photo_url, original_filename, file_size, upload_order) VALUES (?, ?, ?, ?, ?)',
+              args: [entryId, gcsUrl, filename, buffer.length, i]
+            });
+          } catch (photoError) {
+            console.error(`Error uploading photo ${i + 1}:`, photoError);
+            // Continue with other photos even if one fails
+          }
+        }
+      }
+    }
+    
+    res.json({ message: 'Work entry saved successfully', entryId });
   } catch (error) {
     console.error('Work entry creation error:', error);
     res.status(500).json({ error: 'Failed to save work entry' });
@@ -213,13 +297,32 @@ app.get('/api/work-entries', authenticateToken, async (req, res) => {
       });
     }
     
-    const entries = result.rows.map(entry => ({
-      ...entry,
-      photo_data: entry.photo_data ? `data:image/jpeg;base64,${Buffer.from(entry.photo_data).toString('base64')}` : null
+    // Fetch photos for each entry
+    const entriesWithPhotos = await Promise.all(result.rows.map(async (entry) => {
+      const photosResult = await db.execute({
+        sql: 'SELECT photo_url, original_filename, upload_order FROM work_entry_photos WHERE work_entry_id = ? ORDER BY upload_order ASC',
+        args: [entry.id]
+      });
+      
+      // Generate signed URLs for photos
+      const photos = await Promise.all(photosResult.rows.map(async (photo) => {
+        const signedUrl = await getSignedUrl(photo.photo_url);
+        return {
+          url: signedUrl,
+          filename: photo.original_filename,
+          order: photo.upload_order
+        };
+      }));
+      
+      return {
+        ...entry,
+        photos: photos
+      };
     }));
     
-    res.json(entries);
+    res.json(entriesWithPhotos);
   } catch (error) {
+    console.error('Error fetching work entries:', error);
     res.status(500).json({ error: 'Failed to fetch work entries' });
   }
 });
