@@ -39,11 +39,11 @@ function Login({ setUser }) {
         localStorage.setItem('user', JSON.stringify(data.user))
         setUser(data.user)
       } else {
-        setError(data.message || 'Login failed')
+        setError(data.message || t('loginFailed'))
       }
     } catch (error) {
       console.error('Login error:', error)
-      setError('Network error. Please try again.')
+      setError(t('networkError'))
     } finally {
       setLoading(false)
     }
@@ -97,7 +97,7 @@ function Login({ setUser }) {
           disabled={loading}
           className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 sm:py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50 text-base sm:text-sm transition-colors"
         >
-          {loading ? 'Loading...' : t('login')}
+          {loading ? t('loading') : t('login')}
         </button>
       </form>
     </div>

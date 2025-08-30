@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import WorkForm from './pages/WorkForm'
@@ -7,6 +8,7 @@ import AdminView from './pages/AdminView'
 import Header from './components/Header'
 
 function App() {
+  const { t } = useTranslation()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -27,7 +29,7 @@ function App() {
   }
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen">Loading...</div>
+    return <div className="flex justify-center items-center h-screen">{t('loading')}</div>
   }
 
   return (

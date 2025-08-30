@@ -27,18 +27,18 @@ function Dashboard({ user }) {
         const data = await response.json()
         setWorkEntries(data)
       } else {
-        setError('Failed to fetch work entries')
+        setError(t('failedFetchData'))
       }
     } catch (error) {
       console.error('Error fetching work entries:', error)
-      setError('Network error. Please try again.')
+      setError(t('networkError'))
     } finally {
       setLoading(false)
     }
   }
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading...</div>
+    return <div className="flex justify-center items-center h-64">{t('loading')}</div>
   }
 
   return (
@@ -65,7 +65,7 @@ function Dashboard({ user }) {
 
         {workEntries.length === 0 ? (
           <div className="px-4 sm:px-6 py-8 text-center text-gray-500">
-            No work entries found. <Link to="/work-form" className="text-blue-500 underline">Add your first entry</Link>
+            {t('noWorkEntriesFound')}. <Link to="/work-form" className="text-blue-500 underline">{t('addFirstEntry')}</Link>
           </div>
         ) : (
           <div className="divide-y divide-gray-200">
@@ -90,7 +90,7 @@ function Dashboard({ user }) {
                     <div className="mt-3">
                       <img
                         src={entry.photo_data}
-                        alt="Work evidence"
+                        alt={t('workEvidence')}
                         className="w-40 h-40 sm:w-32 sm:h-32 object-cover rounded-lg border mx-auto sm:mx-0"
                       />
                     </div>

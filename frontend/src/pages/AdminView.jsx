@@ -53,11 +53,11 @@ function AdminView() {
         setUsers(usersData)
         setProjects(projectsData)
       } else {
-        setError('Failed to fetch data')
+        setError(t('failedFetchData'))
       }
     } catch (error) {
       console.error('Error fetching data:', error)
-      setError('Network error. Please try again.')
+      setError(t('networkError'))
     } finally {
       setLoading(false)
     }
@@ -112,7 +112,7 @@ function AdminView() {
   }
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64">Loading...</div>
+    return <div className="flex justify-center items-center h-64">{t('loading')}</div>
   }
 
   return (
@@ -137,8 +137,8 @@ function AdminView() {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              <span className="hidden sm:inline">Work Entries</span>
-              <span className="sm:hidden">Work<br />Entries</span>
+              <span className="hidden sm:inline">{t('workEntries')}</span>
+              <span className="sm:hidden">{t('workEntries')}</span>
             </button>
             <button
               onClick={() => setActiveTab('users')}
@@ -148,8 +148,8 @@ function AdminView() {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              <span className="hidden sm:inline">User Management</span>
-              <span className="sm:hidden">User<br />Management</span>
+              <span className="hidden sm:inline">{t('userManagement')}</span>
+              <span className="sm:hidden">{t('userManagement')}</span>
             </button>
             <button
               onClick={() => setActiveTab('projects')}
@@ -159,8 +159,8 @@ function AdminView() {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              <span className="hidden sm:inline">Project Management</span>
-              <span className="sm:hidden">Project<br />Management</span>
+              <span className="hidden sm:inline">{t('projectManagement')}</span>
+              <span className="sm:hidden">{t('projectManagement')}</span>
             </button>
           </nav>
         </div>
@@ -174,7 +174,7 @@ function AdminView() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label htmlFor="userFilter" className="block text-sm font-medium text-gray-700 mb-2">
-                  Filter by User:
+                  {t('filterByUser')}:
                 </label>
                 <select
                   id="userFilter"
@@ -182,7 +182,7 @@ function AdminView() {
                   onChange={(e) => setSelectedUser(e.target.value)}
                   className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                 >
-                  <option value="all">All Users</option>
+                  <option value="all">{t('allUsers')}</option>
                   {users.map(user => (
                     <option key={user.id} value={user.id.toString()}>
                       {user.username} ({user.role})
@@ -193,7 +193,7 @@ function AdminView() {
 
               <div>
                 <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  Start Date:
+                  {t('startDate')}:
                 </label>
                 <input
                   type="date"
@@ -206,7 +206,7 @@ function AdminView() {
 
               <div>
                 <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  End Date:
+                  {t('endDate')}:
                 </label>
                 <input
                   type="date"
@@ -233,7 +233,7 @@ function AdminView() {
             
             {filteredEntries.length === 0 ? (
               <div className="px-4 sm:px-6 py-8 text-center text-gray-500">
-                No work entries found for the selected filters.
+                {t('noEntriesForFilters')}
               </div>
             ) : (
               <div className="divide-y divide-gray-200">
@@ -261,7 +261,7 @@ function AdminView() {
                         <div className="mt-3">
                           <img 
                             src={entry.photo_data} 
-                            alt="Work evidence" 
+                            alt={t('workEvidence')} 
                             className="w-40 h-40 sm:w-32 sm:h-32 object-cover rounded-lg border mx-auto sm:mx-0"
                           />
                         </div>
@@ -276,17 +276,17 @@ function AdminView() {
           {/* Summary Statistics */}
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-blue-100 p-4 rounded-lg text-center">
-              <h3 className="font-semibold text-blue-800 text-sm sm:text-base">Total Entries</h3>
+              <h3 className="font-semibold text-blue-800 text-sm sm:text-base">{t('totalEntries')}</h3>
               <p className="text-xl sm:text-2xl font-bold text-blue-900">{filteredEntries.length}</p>
             </div>
             <div className="bg-green-100 p-4 rounded-lg text-center">
-              <h3 className="font-semibold text-green-800 text-sm sm:text-base">Active Workers</h3>
+              <h3 className="font-semibold text-green-800 text-sm sm:text-base">{t('activeWorkers')}</h3>
               <p className="text-xl sm:text-2xl font-bold text-green-900">
                 {new Set(filteredEntries.map(entry => entry.user_id)).size}
               </p>
             </div>
             <div className="bg-purple-100 p-4 rounded-lg text-center">
-              <h3 className="font-semibold text-purple-800 text-sm sm:text-base">Total Hours</h3>
+              <h3 className="font-semibold text-purple-800 text-sm sm:text-base">{t('totalHours')}</h3>
               <p className="text-xl sm:text-2xl font-bold text-purple-900">
                 {filteredEntries.reduce((total, entry) => {
                   const start = new Date(`2000-01-01T${entry.start_time}`)

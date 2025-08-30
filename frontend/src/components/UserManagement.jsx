@@ -16,7 +16,7 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
   const handleCreateUser = async (e) => {
     e.preventDefault()
     if (!createForm.username || !createForm.password) {
-      setError('Username and password are required')
+      setError(t('usernamePasswordRequired'))
       return
     }
 
@@ -42,18 +42,18 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
         setShowCreateForm(false)
         setError('')
       } else {
-        setError(data.error || 'Failed to create user')
+        setError(data.error || t('failedCreateUser'))
       }
     } catch (error) {
       console.error('Create user error:', error)
-      setError('Network error. Please try again.')
+      setError(t('networkError'))
     } finally {
       setLoading(false)
     }
   }
 
   const handleDeleteUser = async (userId, username) => {
-    if (!confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone and will also delete all their work entries.`)) {
+    if (!confirm(t('confirmDeleteUser', { username }))) {
       return
     }
 
@@ -75,11 +75,11 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
       if (response.ok) {
         onUserDeleted(userId)
       } else {
-        setError(data.error || 'Failed to delete user')
+        setError(data.error || t('failedDeleteUser'))
       }
     } catch (error) {
       console.error('Delete user error:', error)
-      setError('Network error. Please try again.')
+      setError(t('networkError'))
     } finally {
       setLoading(false)
     }
@@ -88,12 +88,12 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
   return (
     <div className="bg-white rounded-lg shadow-md">
       <div className="px-4 sm:px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <h2 className="text-lg sm:text-xl font-semibold">User Management</h2>
+        <h2 className="text-lg sm:text-xl font-semibold">{t('userManagement')}</h2>
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
         >
-          {showCreateForm ? 'Cancel' : 'Add Worker'}
+          {showCreateForm ? t('cancel') : t('addWorker')}
         </button>
       </div>
 
@@ -109,7 +109,7 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
-                  Username
+                  {t('username')}
                 </label>
                 <input
                   type="text"
@@ -123,7 +123,7 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
               </div>
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
+                  {t('password')}
                 </label>
                 <input
                   type="password"
@@ -138,7 +138,7 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
             </div>
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                Role
+                {t('role')}
               </label>
               <select
                 id="role"
@@ -147,8 +147,8 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={loading}
               >
-                <option value="worker">Worker</option>
-                <option value="admin">Admin</option>
+                <option value="worker">{t('worker')}</option>
+                <option value="admin">{t('admin')}</option>
               </select>
             </div>
             <div className="flex space-x-3">
@@ -157,7 +157,7 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
                 disabled={loading}
                 className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 text-sm"
               >
-                {loading ? 'Creating...' : 'Create User'}
+                {loading ? t('creating') : t('createUser')}
               </button>
               <button
                 type="button"
@@ -165,7 +165,7 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
                 disabled={loading}
                 className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 text-sm"
               >
-                Cancel
+                {t('cancel')}
               </button>
             </div>
           </form>
@@ -175,7 +175,7 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
       <div className="divide-y divide-gray-200">
         {users.length === 0 ? (
           <div className="px-4 sm:px-6 py-8 text-center text-gray-500">
-            No users found.
+            {t('noUsersFound')}
           </div>
         ) : (
           users.map((user) => (
@@ -192,7 +192,7 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
                   </span>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  Created: {new Date(user.created_at).toLocaleDateString()}
+                  {t('created')}: {new Date(user.created_at).toLocaleDateString()}
                 </p>
               </div>
               
@@ -202,7 +202,7 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
                   disabled={loading}
                   className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 text-sm"
                 >
-                  Delete
+                  {t('delete')}
                 </button>
               )}
             </div>

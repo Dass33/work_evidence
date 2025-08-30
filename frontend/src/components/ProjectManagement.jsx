@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { API_BASE_URL } from '../config'
 
 function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onProjectDeleted }) {
+  const { t } = useTranslation()
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [editingProject, setEditingProject] = useState(null)
   const [createForm, setCreateForm] = useState({
@@ -18,7 +20,7 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
   const handleCreateProject = async (e) => {
     e.preventDefault()
     if (!createForm.name) {
-      setError('Project name is required')
+      setError(t('projectNameRequired'))
       return
     }
 
@@ -44,11 +46,11 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
         setShowCreateForm(false)
         setError('')
       } else {
-        setError(data.error || 'Failed to create project')
+        setError(data.error || t('failedCreateProject'))
       }
     } catch (error) {
       console.error('Create project error:', error)
-      setError('Network error. Please try again.')
+      setError(t('networkError'))
     } finally {
       setLoading(false)
     }
@@ -57,7 +59,7 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
   const handleUpdateProject = async (e) => {
     e.preventDefault()
     if (!editForm.name) {
-      setError('Project name is required')
+      setError(t('projectNameRequired'))
       return
     }
 
@@ -83,18 +85,18 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
         setEditForm({ name: '', is_hidden: false })
         setError('')
       } else {
-        setError(data.error || 'Failed to update project')
+        setError(data.error || t('failedUpdateProject'))
       }
     } catch (error) {
       console.error('Update project error:', error)
-      setError('Network error. Please try again.')
+      setError(t('networkError'))
     } finally {
       setLoading(false)
     }
   }
 
   const handleDeleteProject = async (projectId, projectName) => {
-    if (!confirm(`Are you sure you want to delete project "${projectName}"? This action cannot be undone.`)) {
+    if (!confirm(t('confirmDeleteProject', { projectName }))) {
       return
     }
 
@@ -116,11 +118,11 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
       if (response.ok) {
         onProjectDeleted(projectId)
       } else {
-        setError(data.error || 'Failed to delete project')
+        setError(data.error || t('failedDeleteProject'))
       }
     } catch (error) {
       console.error('Delete project error:', error)
-      setError('Network error. Please try again.')
+      setError(t('networkError'))
     } finally {
       setLoading(false)
     }
@@ -144,12 +146,12 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
   return (
     <div className="bg-white rounded-lg shadow-md">
       <div className="px-4 sm:px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <h2 className="text-lg sm:text-xl font-semibold">Project Management</h2>
+        <h2 className="text-lg sm:text-xl font-semibold">{t('projectManagement')}</h2>
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
         >
-          {showCreateForm ? 'Cancel' : 'Add Project'}
+          {showCreateForm ? t('cancel') : t('addProject')}
         </button>
       </div>
 
@@ -165,7 +167,7 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="projectName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Project Name
+                  {t('projectName')}
                 </label>
                 <input
                   type="text"
@@ -190,7 +192,7 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
                 </div>
                 <div className="ml-3 text-sm">
                   <label htmlFor="isHidden" className="font-medium text-gray-700">
-                    Hide from workers
+                    {t('hideFromWorkers')}
                   </label>
                 </div>
               </div>
@@ -201,7 +203,7 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
                 disabled={loading}
                 className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 text-sm"
               >
-                {loading ? 'Creating...' : 'Create Project'}
+                {loading ? t('creating') : t('createProject')}
               </button>
               <button
                 type="button"
@@ -209,7 +211,7 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
                 disabled={loading}
                 className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 text-sm"
               >
-                Cancel
+                {t('cancel')}
               </button>
             </div>
           </form>
@@ -219,7 +221,7 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
       <div className="divide-y divide-gray-200">
         {projects.length === 0 ? (
           <div className="px-4 sm:px-6 py-8 text-center text-gray-500">
-            No projects found.
+            {t('noProjectsFound')}
           </div>
         ) : (
           projects.map((project) => (
@@ -229,7 +231,7 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="editProjectName" className="block text-sm font-medium text-gray-700 mb-1">
-                        Project Name
+                        {t('projectName')}
                       </label>
                       <input
                         type="text"
@@ -254,7 +256,7 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
                       </div>
                       <div className="ml-3 text-sm">
                         <label htmlFor="editIsHidden" className="font-medium text-gray-700">
-                          Hide from workers
+                          {t('hideFromWorkers')}
                         </label>
                       </div>
                     </div>
@@ -265,7 +267,7 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
                       disabled={loading}
                       className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 text-sm"
                     >
-                      {loading ? 'Saving...' : 'Save'}
+                      {loading ? t('saving') : t('save')}
                     </button>
                     <button
                       type="button"
@@ -273,7 +275,7 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
                       disabled={loading}
                       className="bg-gray-600 text-white px-3 py-1 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 text-sm"
                     >
-                      Cancel
+                      {t('cancel')}
                     </button>
                   </div>
                 </form>
@@ -285,7 +287,7 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
                       ? 'bg-red-100 text-red-800'
                       : 'bg-green-100 text-green-800'
                       }`}>
-                      {project.is_hidden ? 'Hidden' : 'Visible'}
+                      {project.is_hidden ? t('hidden') : t('visible')}
                     </span>
                   </div>
 
@@ -295,14 +297,14 @@ function ProjectManagement({ projects, onProjectCreated, onProjectUpdated, onPro
                       disabled={loading}
                       className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 text-sm"
                     >
-                      Edit
+                      {t('edit')}
                     </button>
                     <button
                       onClick={() => handleDeleteProject(project.id, project.name)}
                       disabled={loading}
                       className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 text-sm"
                     >
-                      Delete
+                      {t('delete')}
                     </button>
                   </div>
                 </div>

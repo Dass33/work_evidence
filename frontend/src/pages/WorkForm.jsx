@@ -141,7 +141,7 @@ function WorkForm({ user }) {
       }
     } catch (error) {
       console.error('Error submitting work entry:', error)
-      setError('Network error. Please try again.')
+      setError(t('networkError'))
     } finally {
       setLoading(false)
     }
@@ -218,7 +218,7 @@ function WorkForm({ user }) {
               required
               rows="4"
               className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base resize-none"
-              placeholder="Describe your work activities..."
+              placeholder={t('describePlaceholder')}
             />
           </div>
 
@@ -260,7 +260,7 @@ function WorkForm({ user }) {
               <div className="mt-3">
                 <img 
                   src={compressedPhoto} 
-                  alt="Preview" 
+                  alt={t('preview')} 
                   className="w-40 h-40 sm:w-32 sm:h-32 object-cover rounded-lg border mx-auto sm:mx-0"
                 />
               </div>
@@ -273,7 +273,7 @@ function WorkForm({ user }) {
               onClick={() => navigate('/')}
               className="px-4 py-3 sm:py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors text-base sm:text-sm"
             >
-              Cancel
+              {t('cancel')}
             </button>
             <button
               type="submit"
