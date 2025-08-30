@@ -18,13 +18,13 @@ app.use(express.json({ limit: '50mb' }));
 
 const storage = new Storage({
   projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-  keyFilename: process.env.GOOGLE_CLOUD_KEY_FILE,
+  keyFilename: process.env.GOOGLE_CLOUD_KEY_FILE || undefined,
 });
 const bucket = storage.bucket(process.env.GOOGLE_CLOUD_STORAGE_BUCKET);
 
 // Google Sheets setup
 const auth = new google.auth.GoogleAuth({
-  keyFile: process.env.GOOGLE_CLOUD_KEY_FILE,
+  keyFile: process.env.GOOGLE_CLOUD_KEY_FILE || undefined,
   scopes: ['https://www.googleapis.com/auth/spreadsheets'],
 });
 const sheets = google.sheets({ version: 'v4', auth });
@@ -163,10 +163,15 @@ async function getSignedUrl(photoUrl) {
   try {
     const fileName = photoUrl.replace(`gs://${process.env.GOOGLE_CLOUD_STORAGE_BUCKET}/`, '');
     const file = bucket.file(fileName);
-    const [url] = await file.getSignedUrl({
+    
+    // Use a different signing method that works with default credentials
+    const options = {
+      version: 'v4',
       action: 'read',
       expires: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
-    });
+    };
+    
+    const [url] = await file.getSignedUrl(options);
     return url;
   } catch (error) {
     console.error('Error generating signed URL:', error);
