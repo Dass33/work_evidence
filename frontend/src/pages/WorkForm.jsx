@@ -137,7 +137,7 @@ function WorkForm({ user }) {
         end_time: formData.end_time,
         description: formData.description,
         photos: compressedPhotos,
-        project_id: formData.project_id || null
+        project_id: formData.project_id
       }
 
       const response = await fetch(`${API_BASE_URL}/api/work-entries`, {
@@ -241,16 +241,17 @@ function WorkForm({ user }) {
           {projects.length > 0 && (
             <div>
               <label htmlFor="project_id" className="block text-sm font-medium text-gray-700 mb-2">
-                Project (Optional)
+                Project
               </label>
               <select
                 id="project_id"
                 name="project_id"
                 value={formData.project_id}
                 onChange={handleChange}
+                required
                 className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
               >
-                <option value="">Select a project (optional)</option>
+                <option value="">Select a project</option>
                 {projects.map((project) => (
                   <option key={project.id} value={project.id}>
                     {project.name}
