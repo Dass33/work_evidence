@@ -47,12 +47,12 @@ function WorkForm({ user }) {
       const canvas = document.createElement('canvas')
       const ctx = canvas.getContext('2d')
       const img = new Image()
-      
+
       img.onload = () => {
         const maxWidth = 800
         const maxHeight = 600
         let { width, height } = img
-        
+
         if (width > height) {
           if (width > maxWidth) {
             height = (height * maxWidth) / width
@@ -64,12 +64,12 @@ function WorkForm({ user }) {
             height = maxHeight
           }
         }
-        
+
         canvas.width = width
         canvas.height = height
-        
+
         ctx.drawImage(img, 0, 0, width, height)
-        
+
         canvas.toBlob((blob) => {
           const reader = new FileReader()
           reader.onload = () => {
@@ -78,7 +78,7 @@ function WorkForm({ user }) {
           reader.readAsDataURL(blob)
         }, 'image/jpeg', 0.6)
       }
-      
+
       img.src = URL.createObjectURL(file)
     })
   }
@@ -92,7 +92,7 @@ function WorkForm({ user }) {
           ...formData,
           photos: newPhotos
         })
-        
+
         // Compress all newly selected photos
         const newCompressed = await Promise.all(
           files.map(async (file) => ({
@@ -116,7 +116,7 @@ function WorkForm({ user }) {
   const removePhoto = (index) => {
     const newPhotos = formData.photos.filter((_, i) => i !== index)
     const newCompressed = compressedPhotos.filter((_, i) => i !== index)
-    
+
     setFormData({
       ...formData,
       photos: newPhotos
@@ -167,7 +167,7 @@ function WorkForm({ user }) {
     <div className="max-w-2xl mx-auto">
       <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
         <h1 className="text-xl sm:text-2xl font-bold mb-6 text-center sm:text-left">{t('addWorkEntry')}</h1>
-        
+
         {error && (
           <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
             {error}
@@ -251,7 +251,7 @@ function WorkForm({ user }) {
                 required
                 className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
               >
-                <option value="">Select a project</option>
+                <option value="">Výbrat Stavbu</option>
                 {projects.map((project) => (
                   <option key={project.id} value={project.id}>
                     {project.name}
@@ -274,15 +274,15 @@ function WorkForm({ user }) {
               multiple
               className="w-full px-3 py-3 sm:py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
             />
-            
+
             {compressedPhotos.length > 0 && (
               <div className="mt-4">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {compressedPhotos.map((photo, index) => (
                     <div key={index} className="relative">
-                      <img 
-                        src={photo.preview} 
-                        alt={`${t('preview')} ${index + 1}`} 
+                      <img
+                        src={photo.preview}
+                        alt={`${t('preview')} ${index + 1}`}
                         className="w-full h-24 sm:h-20 object-cover rounded-lg border"
                       />
                       <button
