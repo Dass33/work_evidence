@@ -241,7 +241,7 @@ function WorkForm({ user }) {
           {projects.length > 0 && (
             <div>
               <label htmlFor="project_id" className="block text-sm font-medium text-gray-700 mb-2">
-                Project
+                Stavba
               </label>
               <select
                 id="project_id"
