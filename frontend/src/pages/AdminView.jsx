@@ -267,6 +267,7 @@ function AdminView() {
                                 <img
                                   src={photo.url}
                                   alt={`${t('workEvidence')} ${photoIndex + 1}`}
+                                  loading="lazy"
                                   className="w-full h-24 sm:h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80"
                                   onClick={() => window.open(photo.url, '_blank')}
                                 />

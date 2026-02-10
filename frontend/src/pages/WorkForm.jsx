@@ -283,6 +283,7 @@ function WorkForm({ user }) {
                       <img
                         src={photo.preview}
                         alt={`${t('preview')} ${index + 1}`}
+                        loading="lazy"
                         className="w-full h-24 sm:h-20 object-cover rounded-lg border"
                       />
                       <button
