@@ -482,6 +482,41 @@ app.delete('/api/admin/users/:userId', authenticateToken, async (req, res) => {
   }
 });
 
+app.put('/api/admin/users/:userId/password', authenticateToken, async (req, res) => {
+  const { userId } = req.params;
+  const { newPassword } = req.body;
+
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    if (!newPassword || newPassword.length < 4) {
+      return res.status(400).json({ error: 'Password must be at least 4 characters' });
+    }
+
+    const userCheck = await db.execute({
+      sql: 'SELECT id FROM users WHERE id = ?',
+      args: [userId]
+    });
+
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await db.execute({
+      sql: 'UPDATE users SET password = ? WHERE id = ?',
+      args: [hashedPassword, userId]
+    });
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Password change error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 app.get('/api/projects', authenticateToken, async (req, res) => {
   try {
     let result;

@@ -19,7 +19,15 @@ const resources = {
       submit: 'Надіслати',
       workEntries: 'Записи роботи',
       addWorkEntry: 'Додати запис роботи',
-      viewAll: 'Переглянути всю роботу'
+      viewAll: 'Переглянути всю роботу',
+      changePassword: 'Змінити пароль',
+      newPassword: 'Новий пароль',
+      failedChangePassword: 'Не вдалося змінити пароль',
+      passwordRequired: 'Пароль є обов\'язковим',
+      save: 'Зберегти',
+      cancel: 'Скасувати',
+      saving: 'Збереження...',
+      networkError: 'Помилка мережі. Будь ласка, спробуйте ще раз.'
     }
   },
   cs: {
@@ -86,6 +94,10 @@ const resources = {
       failedDeleteProject: 'Nepodařilo se smazat projekt',
       failedCreateUser: 'Nepodařilo se vytvořit uživatele',
       failedDeleteUser: 'Nepodařilo se smazat uživatele',
+      changePassword: 'Změnit heslo',
+      newPassword: 'Nové heslo',
+      failedChangePassword: 'Nepodařilo se změnit heslo',
+      passwordRequired: 'Heslo je povinné',
       loginFailed: 'Přihlášení se nezdařilo',
       failedFetchData: 'Nepodařilo se načíst data',
       noEntriesForFilters: 'Pro vybrané filtry nebyly nalezeny žádné pracovní záznamy.',
@@ -114,7 +126,15 @@ const resources = {
       submit: 'Yuborish',
       workEntries: 'Ish yozuvlari',
       addWorkEntry: 'Ish yozuvi qo\'shish',
-      viewAll: 'Barcha ishlarni ko\'rish'
+      viewAll: 'Barcha ishlarni ko\'rish',
+      changePassword: 'Parolni o\'zgartirish',
+      newPassword: 'Yangi parol',
+      failedChangePassword: 'Parolni o\'zgartirib bo\'lmadi',
+      passwordRequired: 'Parol majburiy',
+      save: 'Saqlash',
+      cancel: 'Bekor qilish',
+      saving: 'Saqlanmoqda...',
+      networkError: 'Tarmoq xatosi. Iltimos, qaytadan urinib ko\'ring.'
     }
   }
 };

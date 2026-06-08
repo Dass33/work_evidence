@@ -12,6 +12,9 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [changePasswordUserId, setChangePasswordUserId] = useState(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [changePasswordError, setChangePasswordError] = useState('')
 
   const handleCreateUser = async (e) => {
     e.preventDefault()
@@ -47,6 +50,43 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
     } catch (error) {
       console.error('Create user error:', error)
       setError(t('networkError'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleChangePassword = async (userId) => {
+    if (!newPassword) {
+      setChangePasswordError(t('passwordRequired'))
+      return
+    }
+
+    setLoading(true)
+    setChangePasswordError('')
+
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/password`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newPassword }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setChangePasswordUserId(null)
+        setNewPassword('')
+        setChangePasswordError('')
+      } else {
+        setChangePasswordError(data.error || t('failedChangePassword'))
+      }
+    } catch (error) {
+      console.error('Change password error:', error)
+      setChangePasswordError(t('networkError'))
     } finally {
       setLoading(false)
     }
@@ -179,31 +219,82 @@ function UserManagement({ users, onUserCreated, onUserDeleted }) {
           </div>
         ) : (
           users.map((user) => (
-            <div key={user.id} className="px-4 sm:px-6 py-4 flex items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-4">
-                  <span className="font-medium text-gray-900">{user.username}</span>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    user.role === 'admin' 
-                      ? 'bg-purple-100 text-purple-800' 
-                      : 'bg-blue-100 text-blue-800'
-                  }`}>
-                    {user.role}
-                  </span>
+            <div key={user.id} className="px-4 sm:px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-4">
+                    <span className="font-medium text-gray-900">{user.username}</span>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      user.role === 'admin'
+                        ? 'bg-purple-100 text-purple-800'
+                        : 'bg-blue-100 text-blue-800'
+                    }`}>
+                      {user.role}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {t('created')}: {new Date(user.created_at).toLocaleDateString()}
+                  </p>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
-                  {t('created')}: {new Date(user.created_at).toLocaleDateString()}
-                </p>
+
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => {
+                      setChangePasswordUserId(changePasswordUserId === user.id ? null : user.id)
+                      setNewPassword('')
+                      setChangePasswordError('')
+                    }}
+                    disabled={loading}
+                    className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:opacity-50 text-sm"
+                  >
+                    {t('changePassword')}
+                  </button>
+                  {user.role !== 'admin' && (
+                    <button
+                      onClick={() => handleDeleteUser(user.id, user.username)}
+                      disabled={loading}
+                      className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 text-sm"
+                    >
+                      {t('delete')}
+                    </button>
+                  )}
+                </div>
               </div>
-              
-              {user.role !== 'admin' && (
-                <button
-                  onClick={() => handleDeleteUser(user.id, user.username)}
-                  disabled={loading}
-                  className="bg-red-600 text-white px-3 py-1 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 text-sm"
-                >
-                  {t('delete')}
-                </button>
+
+              {changePasswordUserId === user.id && (
+                <div className="mt-3 p-3 bg-gray-50 rounded-md border border-gray-200">
+                  {changePasswordError && (
+                    <p className="text-sm text-red-600 mb-2">{changePasswordError}</p>
+                  )}
+                  <div className="flex space-x-2">
+                    <input
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder={t('newPassword')}
+                      className="flex-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      disabled={loading}
+                    />
+                    <button
+                      onClick={() => handleChangePassword(user.id)}
+                      disabled={loading}
+                      className="bg-yellow-500 text-white px-3 py-1.5 rounded-md hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled:opacity-50 text-sm"
+                    >
+                      {loading ? t('saving') : t('save')}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setChangePasswordUserId(null)
+                        setNewPassword('')
+                        setChangePasswordError('')
+                      }}
+                      disabled={loading}
+                      className="bg-gray-500 text-white px-3 py-1.5 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 disabled:opacity-50 text-sm"
+                    >
+                      {t('cancel')}
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           ))
